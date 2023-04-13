@@ -1,0 +1,77 @@
+---
+title: "Homework 4"
+author: "Zachary Lazerick"
+date: "7 October, 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Problem 3
+#Analysis of the Pharmacy Data
+
+a) Read in the Data
+
+```{r}
+Pharmacy = read.csv("Pharmacy.csv")
+attach(Pharmacy)
+```
+
+b) Fit a Linear Model with Predictor "Ingredients Purchase Directly" and Response "Sales Volume"
+
+```{r}
+Pharmacy.fit <- lm(Sales.Volume~Ingredients.Purchased.Directly, data=Pharmacy)
+summary(Pharmacy.fit)
+```
+
+c) Confirm Estimates for Beta_0 and Beta_1 from Problem 1
+
+```{r}
+plot(Ingredients.Purchased.Directly, Sales.Volume)
+abline(Pharmacy.fit, lwd = 3, col = "red")
+coef(Pharmacy.fit)
+```
+These reported coefficients match the hand-calculated coefficients in Problem 1.
+
+d) Use Output to Report the Estimate for V(e) = sigma^2
+
+The output reports a Residual Std. Error of 9.022 on 8 Degrees of Freedom. Squaring this result gives the estimate for V(e), so (9.022)^2 = 81.39648.
+
+e) How are the 8 Degrees of Freedom Obtained? 
+
+There are 8 Degrees of Freedom because the sample size, n = 10 and the formula for Degrees of Freedom for Simple Linear Regression is d.f. = n - 2, because we estimate Beta_0 and Beta_1. Substituting 10 for n yields 10 - 2 = 8 d.f.
+
+##Problem 4
+#Analysis of the Casino/Crime Data
+
+a) Read in the Data
+
+```{r}
+Casino = read.csv("Casino.csv")
+attach(Casino)
+```
+
+b) Fit a Linear Model with Predictor "Number of Casino Employees" and Response "Crime Rate"
+
+```{r}
+Casino.fit <- lm(Crime.Rate~Number.of.Casino.Employees, data=Casino)
+summary(Casino.fit)
+```
+
+c) Plot the Data along the Regression Line
+
+```{r}
+plot(Number.of.Casino.Employees, Crime.Rate)
+abline(Casino.fit, lwd = 3, col="blue")
+```
+
+d) Use the Output to Report the Estimate for V(e) = sigma^2
+
+The output reports a Residual Std. Error of 0.3446 on 8 Degrees of Freedom. Squaring this result gives the estimate for V(e) = (0.3446)^2 = 0.1187492.
+
+e) Predict the Crime Rate when there are 25,000 Casino Employees
+
+Given that there are 25,000 Casino Employees, this means that the 'Number.of.Casino.Employees' is 25. So, substituting 25 for X in our regression equation, we get Y = Beta_0 + Beta_1 * X = (-.86977) + (0.11493)(25) = 2.09896. Thus the expected Crime Rate when there are 25,000 Casino Employees is 2.098986 (per 1,000 population).
+

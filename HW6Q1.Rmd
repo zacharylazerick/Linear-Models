@@ -1,0 +1,92 @@
+---
+title: "HW6Q1"
+author: "Zachary Lazerick"
+date: "11/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r global.options, include=FALSE}
+knitr::opts_chunk$set(
+  fig.align = 'center'
+)
+```
+
+Load the Lawstat Library to Access the Brown-Forscythe-Levene Test
+```{r}
+library(lawstat)
+```
+
+Read in the Data
+```{r}
+Advertising = read.csv("Advertising.csv")
+attach(Advertising)
+```
+
+**Question 1: Building an SLR Model Sales ~ Radio**
+(Initial Results)
+
+Construct a Simple Linear Model with Predictor: Radio and Response: Sales
+```{r}
+lm.fit.radio = lm(sales~radio, data = Advertising)
+```
+```{r, echo=F}
+summary(lm.fit.radio)
+```
+
+Construct a Scatter Plot with the Calculated Linear Model
+"Eye-Test" for Abnormalities (Non-linearity, etc.)
+```{r, echo=F}
+par(mfrow=c(1,1))
+plot(radio, sales)
+abline(lm.fit.radio, col = 'red', lwd = 3)
+```
+
+Construct Plots to Check Diagnostics
+```{r, echo=F}
+plot(lm.fit.radio, which = c(1))
+plot(lm.fit.radio, which = c(2))
+plot(lm.fit.radio, which = c(5))
+```
+
+Check Distribution of Residuals for Obvious Deviations
+```{r, echo=F}
+boxplot(lm.fit.radio$residuals, ylab="Residuals")
+hist(lm.fit.radio$residuals)
+```
+
+Run Shapiro-Wilk and Brown-Forscythe-Levene Tests
+```{r}
+shapiro.test(lm.fit.radio$residuals)
+```
+```{r, echo=F}
+Advertising$Group = rep("Group1", 200)
+indexRadio = (radio > median(radio))
+Advertising$Group[indexRadio] = "Group2"
+```
+```{r}
+levene.test(lm.fit.radio$residuals, Advertising$Group, location = c("median"))
+```
+
+**Conclusion**
+From the Shapiro-Wilks Test, we conclude that the data is not from
+a normal distribution, and from the Levene Test, we conclude that the data is
+not homoscedastic. Therefore, we must transform the data
+in hopes of obtaining approximately normal and homoscedastic data to draw
+statistically significant conclusions from this data.
+
+**Data Transformation Test Results**
+
+|   **Response ~ Predictor**  	| **Shapiro-Wilks P-Value** 	| **Levene P-Value** 	|
+|:-----------------------:	|:---------------------:	|:------------------------------:	|
+|      Sales ~ Radio      	|       2.367e-05       	|            1.671e-10           	|
+|   sqrt(Sales) ~ Radio   	|       3.443e-09       	|            4.465e-06           	|
+|   log10(Sales) ~ Radio  	|        7.05e-14       	|             .003309            	|
+|    (1/Sales) ~ Radio    	|        2.2e-16        	|              .3412             	|
+| (1/Sales) ~ sqrt(Radio) 	|        2.2e-16        	|              .2836             	|
+
+**Conclusion**
+Upon transforming our Response Variable Sales to (1/Sales), we are able to obtain homoscedastic data. However, we are unable to transform the corresponding Predictor Radio, to obtain  approximately normal data in conjunction with (1/Sales) to draw statistically significant data because one of the levels of Radio is 0. Therefore, transformations like (log10Radio) and (1/Radio) yield undefined values, and thus a simple linear regression model, with Shapiro-Wilks and Levene test results, cannot be obtained from these transformations. 

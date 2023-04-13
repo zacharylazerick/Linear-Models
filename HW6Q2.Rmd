@@ -1,0 +1,109 @@
+---
+title: "HW6Q2"
+author: "Zachary Lazerick"
+date: "11/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r global.options, include=FALSE}
+knitr::opts_chunk$set(
+  fig.align = 'center'
+)
+```
+
+Load the Lawstat Library to Access the Brown-Forscythe-Levene Test
+```{r}
+library(lawstat)
+```
+
+Read in the Data
+```{r}
+Advertising = read.csv("Advertising.csv")
+attach(Advertising)
+```
+
+**Question 2: Building an SLR Model Sales ~ Newspaper**
+(Initial Results)
+
+Construct a Simple Linear Model with Predictor: Newspaper and Response: Sales
+```{r}
+lm.fit.news = lm(sales~newspaper, data = Advertising)
+```
+```{r, echo=F}
+summary(lm.fit.news)
+```
+
+Construct a Scatter Plot with the Calculated Linear Model
+"Eye-Test" for Abnormalities (Non-linearity, etc.)
+```{r, echo=F}
+par(mfrow=c(1,1))
+plot(newspaper, sales)
+abline(lm.fit.news, col = 'red', lwd = 3)
+```
+
+Construct Plots to Check Diagnostics
+```{r, echo=F}
+plot(lm.fit.news, which = c(1))
+plot(lm.fit.news, which = c(2))
+plot(lm.fit.news, which = c(5))
+```
+
+Check Distribution of Residuals for Obvious Deviations
+```{r, echo=F}
+boxplot(lm.fit.news$residuals, ylab="Residuals")
+hist(lm.fit.news$residuals)
+```
+
+Run Shapiro-Wilk and Brown-Forscythe-Levene Tests
+```{r}
+shapiro.test(lm.fit.news$residuals)
+```
+```{r, echo=F}
+Advertising$Group = rep("Group1", 200)
+indexNews = (newspaper > median(newspaper))
+Advertising$Group[indexNews] = "Group2"
+```
+```{r}
+levene.test(lm.fit.news$residuals, Advertising$Group, location = c("median"))
+```
+
+**Conclusion**
+From the Shapiro-Wilks Test, we conclude that the data is not from
+a normal distribution. However, from the Levene Test, we conclude that the data is homoscedastic at the .05 significance level, although not very convincingly. Therefore, we must transform the data in hopes of obtaining approximately normal and more convincing homoscedastic data to draw statistically significant conclusions from this data.
+
+**Data Transformation Test Results**
+
+|     **Response ~ Predictor**    	| **Shapiro-Wilks P-Value** 	| **Levene P-Value** 	|
+|:-------------------------------:	|:-------------------------:	|:------------------:	|
+|        Sales ~ Newspaper        	|           .0114           	|       .09754       	|
+|     sqrt(Sales) ~ Newspaper     	|            .308           	|        .3703       	|
+|     log10(Sales) ~ Newspaper    	|          5.41e-06         	|        .9783       	|
+|      (1/Sales) ~ Newspaper      	|          2.2e-16          	|        .2057       	|
+|  log10(Sales) ~ sqrt(Newspaper) 	|         8.661e-06         	|        .9341       	|
+|  sqrt(Sales) ~ sqrt(Newspaper)  	|           .2702           	|        .4016       	|
+|   (1/Sales) ~ sqrt(Newspaper)   	|          2.2e-16          	|        .185        	|
+| log10(Sales) ~ log10(Newspaper) 	|         8.478e-06         	|        .9743       	|
+|  sqrt(Sales) ~ log10(Newspaper) 	|           .1401           	|        .3659       	|
+|   (1/Sales) ~ log10(Newspaper)  	|          2.2e-16          	|        .1831       	|
+**Conclusion**
+From transforming our data, we obtain more convincing homoscedastic data in all cases, some of which also yielding approximate normally distributed data. The three transformations that show this best are 1. sqrt(Sales) ~ sqrt(Newspaper), 2. sqrt(Sales) ~ Newspaper, and 3. sqrt(Sales) ~ log10(Newspaper). Ultimately we will use the sqrt(Sales) ~ sqrt(Newspaper) transformation to analyze our data because it yielded the greatest p-value for the Levene-Test of these three transformations
+
+**Analyzing the sqrt(Sales) ~ sqrt(Newspaper) Model**
+
+```{r, echo=F}
+Advertising$sqrtSales = sqrt(sales)
+Advertising$sqrtNews = sqrt(newspaper)
+
+lm.fit.news.6 = lm(sqrtSales~sqrtNews, data = Advertising)
+```
+```{r}
+summary(lm.fit.news.6)
+```
+
+**Interpretation of the Model**
+From the Summary of our Simple Linear Model, we obtain a regression equation of Y = 3.31633 + .07019X, with both coefficients being statistically significant at the .05 significance level. This means that there is an association between the level of Newspaper Advertising and Number of Unit Sales. Therefore the company should increase its Newspaper Advertising budget to indirectly increase Sales. In fact, for every increment of 1 in level of sqrt(Newspaper), (in thousands of dollars), we expect that the response, sqrt(Sales), (in thousands of dollars), increases by .07019. However, the interpretation of our intercept does not make sense. This is because at sqrt(Newspaper) = 0, it would be expected that sqrt(Sales) = 0 by the fact that it would be impossible to have sales with no produced product. 
+
